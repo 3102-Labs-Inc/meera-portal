@@ -9,18 +9,27 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.1",
+    "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-aspect-ratio": "^1.1.0",
+    "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.46.1",
     "@tanstack/react-table": "^8.20.5",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
     "next": "15.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "shadcn-ui": "^0.9.3"
+    "shadcn-ui": "^0.9.3",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
