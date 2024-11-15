@@ -14,15 +14,24 @@ export default function LoginPage() {
   const handleSignIn = async () => {
     setIsLoading(true)
     try {
-      await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       })
+
+      if (error) {
+        console.error('Auth Error:', error)
+        setIsLoading(false)
+      }
     } catch (error) {
+      console.error('Sign in error:', error)
       setIsLoading(false)
-      console.error('Error signing in:', error)
     }
   }
 
