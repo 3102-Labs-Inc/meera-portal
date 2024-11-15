@@ -5,13 +5,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LogOut, User, MessageSquare, Clock, Settings } from 'lucide-react'
-
-interface Interaction {
-  id: string
-  content: string
-  type: 'transcription' | 'llm_response'
-  timestamp: string
-}
+import { fetchInteractions } from '@/lib/supabase/utils'
+import type { Interaction } from '@/types/supabase'
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
@@ -25,8 +20,30 @@ export default function Dashboard() {
       setUser(user)
       setLoading(false)
     }
+
+    const loadInteractions = async () => {
+      const data = await fetchInteractions()
+      setInteractions(data)
+    }
+
     getUser()
-    // TODO: Fetch interactions from your API
+    loadInteractions()
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('interactions_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'interactions' },
+        (payload) => {
+          loadInteractions() // Reload interactions when changes occur
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const handleSignOut = async () => {

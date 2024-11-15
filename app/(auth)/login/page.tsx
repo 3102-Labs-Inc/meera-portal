@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { Chrome } from 'lucide-react' // Import the Google icon
 
 export default function LoginPage() {
-  const router = useRouter()
+  //const router = useRouter()
   const supabase = createClientComponentClient()
 
   const handleSignIn = async () => {
