@@ -7,12 +7,29 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Mic, Settings, Loader2 } from 'lucide-react'
 
+type ConnectionLog = {
+  id: number;
+  timestamp: Date;
+  type: 'info' | 'error' | 'success';
+  message: string;
+}
+
 export default function MicPage() {
   const [isRecording, setIsRecording] = useState(false)
-  const [wsUrl, setWsUrl] = useState('ws://13.232.236.7:8080')
+  const [wsUrl, setWsUrl] = useState('ws://localhost:8080')
   const [hasPermission, setHasPermission] = useState(false)
   const [wsStatus, setWsStatus] = useState<'disconnected' | 'connected' | 'error'>('disconnected')
-  const [isSaving, setIsSaving] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [connectionLogs, setConnectionLogs] = useState<ConnectionLog[]>([])
+  
+  const addLog = (type: 'info' | 'error' | 'success', message: string) => {
+    setConnectionLogs(prev => [...prev, {
+      id: Date.now(),
+      timestamp: new Date(),
+      type,
+      message
+    }].slice(-50)) // Keep last 50 logs
+  }
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -152,7 +169,7 @@ export default function MicPage() {
               processorRef.current = processor
               
               console.log('Audio context state:', audioCtx.state)
-              console.log('s rate:', audioCtx.sampleRate)
+              console.log('Sample rate:', audioCtx.sampleRate)
               
               // Connect audio nodes
               source.connect(analyser)
@@ -259,17 +276,52 @@ export default function MicPage() {
     }
   }
 
-  // Save WebSocket URL
-  const handleSaveUrl = async () => {
-    setIsSaving(true)
+  // Handle WebSocket connection
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    addLog('info', 'Attempting to connect...');
+    
     try {
-      localStorage.setItem('wsUrl', wsUrl)
-      // Simulate a delay to show loading state
-      await new Promise(resolve => setTimeout(resolve, 500))
+      if (wsRef.current) {
+        wsRef.current.close();
+        addLog('info', 'Closing existing connection');
+      }
+
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      
+      ws.onopen = () => {
+        addLog('success', 'Connected successfully');
+        setWsStatus('connected');
+        localStorage.setItem('wsUrl', wsUrl);
+      };
+      
+      ws.onerror = (error) => {
+        addLog('error', 'Connection error occurred');
+        setWsStatus('error');
+      };
+      
+      ws.onclose = () => {
+        addLog('info', 'Connection closed');
+        setWsStatus('disconnected');
+      };
+
+    } catch (error) {
+      addLog('error', `Connection failed: ${error}`);
+      setWsStatus('error');
     } finally {
-      setIsSaving(false)
+      setIsConnecting(false);
     }
-  }
+  };
+
+  const handleDisconnect = () => {
+    if (wsRef.current) {
+      addLog('info', 'Disconnecting...');
+      wsRef.current.close();
+      wsRef.current = null;
+      setWsStatus('disconnected');
+    }
+  };
 
   // Load saved URL and request permission on mount
   useEffect(() => {
@@ -352,42 +404,84 @@ export default function MicPage() {
               </TabsContent>
 
               <TabsContent value="settings">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium">WebSocket Server URL</h3>
-                    <div className="flex space-x-2">
-                      <Input
-                        value={wsUrl}
-                        onChange={(e) => setWsUrl(e.target.value)}
-                        placeholder="ws://13.232.236.7:8080"
-                      />
-                      <Button 
-                        onClick={handleSaveUrl}
-                        disabled={isSaving}
-                      >
-                        {isSaving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium">WebSocket Server URL</h3>
+                      <div className="space-y-2">
+                        <Input
+                          value={wsUrl}
+                          onChange={(e) => setWsUrl(e.target.value)}
+                          placeholder="ws://localhost:8080"
+                        />
+                        {wsStatus === 'connected' ? (
+                          <Button 
+                            onClick={handleDisconnect}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            Disconnect
+                          </Button>
                         ) : (
-                          'Save'
+                          <Button 
+                            onClick={handleConnect}
+                            disabled={isConnecting}
+                            className="w-full"
+                          >
+                            {isConnecting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Connecting...
+                              </>
+                            ) : (
+                              'Connect'
+                            )}
+                          </Button>
                         )}
-                      </Button>
+                        <div className="flex items-center mt-2">
+                          <div 
+                            className={`w-2 h-2 rounded-full mr-2 ${
+                              wsStatus === 'connected' ? 'bg-green-500' : 
+                              wsStatus === 'error' ? 'bg-red-500' : 
+                              'bg-gray-500'
+                            }`}
+                          />
+                          <span className="text-sm text-gray-500">
+                            {wsStatus === 'connected' ? 'Connected' : 
+                             wsStatus === 'error' ? 'Connection Error' : 
+                             'Disconnected'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center mt-2">
-                      <div 
-                        className={`w-2 h-2 rounded-full mr-2 ${
-                          wsStatus === 'connected' ? 'bg-green-500' : 
-                          wsStatus === 'error' ? 'bg-red-500' : 
-                          'bg-gray-500'
-                        }`}
-                      />
-                      <span className="text-sm text-gray-500">
-                        {wsStatus === 'connected' ? 'Connected' : 
-                         wsStatus === 'error' ? 'Connection Error' : 
-                         'Disconnected'}
-                      </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Connection Logs</h3>
+                    <div className="h-[300px] overflow-y-auto border rounded-lg p-2 bg-black/5 space-y-2">
+                      {connectionLogs.map(log => (
+                        <div 
+                          key={log.id}
+                          className="text-sm border-l-2 pl-2"
+                          style={{
+                            borderColor: 
+                              log.type === 'error' ? 'rgb(239, 68, 68)' :
+                              log.type === 'success' ? 'rgb(34, 197, 94)' :
+                              'rgb(156, 163, 175)'
+                          }}
+                        >
+                          <span className="text-gray-500 text-xs">
+                            {log.timestamp.toLocaleTimeString()}
+                          </span>
+                          <p className={
+                            log.type === 'error' ? 'text-red-600' :
+                            log.type === 'success' ? 'text-green-600' :
+                            'text-gray-600'
+                          }>
+                            {log.message}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
