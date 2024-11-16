@@ -9,7 +9,7 @@ import { Mic, Settings, Loader2 } from 'lucide-react'
 
 export default function MicPage() {
   const [isRecording, setIsRecording] = useState(false)
-  const [wsUrl, setWsUrl] = useState('ws://localhost:8080')
+  const [wsUrl, setWsUrl] = useState('ws://13.232.236.7:8080')
   const [hasPermission, setHasPermission] = useState(false)
   const [wsStatus, setWsStatus] = useState<'disconnected' | 'connected' | 'error'>('disconnected')
   const [isSaving, setIsSaving] = useState(false)
@@ -359,7 +359,7 @@ export default function MicPage() {
                       <Input
                         value={wsUrl}
                         onChange={(e) => setWsUrl(e.target.value)}
-                        placeholder="ws://localhost:8080"
+                        placeholder="ws://13.232.236.7:8080"
                       />
                       <Button 
                         onClick={handleSaveUrl}
