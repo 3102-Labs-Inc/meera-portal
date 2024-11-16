@@ -12,9 +12,9 @@ export default function LoginPage() {
   const supabase = createClientComponentClient()
 
   const handleSignIn = async () => {
-    setIsLoading(true)
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      setIsLoading(true)
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -22,7 +22,7 @@ export default function LoginPage() {
             access_type: 'offline',
             prompt: 'consent',
           },
-        },
+        }
       })
 
       if (error) {

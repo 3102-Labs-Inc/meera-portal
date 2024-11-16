@@ -1,4 +1,4 @@
-// paste this code in: app/auth/callback/route.ts
+// app/auth/callback/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -8,9 +8,17 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
-    await supabase.auth.exchangeCodeForSession(code)
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    
+    try {
+      await supabase.auth.exchangeCodeForSession(code)
+    } catch (error) {
+      console.error('Error in auth callback:', error)
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
 
-  return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+  // Redirect to dashboard after successful authentication
+  return NextResponse.redirect(new URL('/dashboard', request.url))
 }
