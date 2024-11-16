@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogOut, User, MessageSquare, Clock, Settings, BellRing, Sparkles, Link as LinkIcon } from 'lucide-react'
+import { LogOut, User, MessageSquare, Clock, Settings, BellRing, Sparkles, Link as LinkIcon, Laptop } from 'lucide-react'
 import { fetchInteractions } from '@/lib/supabase/utils'
 import type { Interaction } from '@/types/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import Link from 'next/link'
 
 export default function Dashboard() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
@@ -54,17 +55,47 @@ export default function Dashboard() {
       <nav className="border-b bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <div className="text-xl font-bold">Meera Portal</div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
+            <div className="flex items-center">
+              <Laptop className="h-5 w-5 mr-2" />
+              <Link href="/dashboard" className="text-xl font-bold">
+                Meera Portal
+              </Link>
+              <div className="hidden md:flex ml-10 space-x-8">
+                <Link 
+                  href="/dashboard" 
+                  className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/perception" 
+                  className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Perception
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">
+                {user?.email}
+              </span>
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Banner */}
+        <div className="mb-8 p-6 bg-gradient-to-r from-black to-gray-800 rounded-lg text-white">
+          <h1 className="text-2xl font-bold mb-2">Welcome to Meera Portal! 👋</h1>
+          <p className="text-gray-300">Let's get you started with setting up your Meera device.</p>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           {/* User Info Card */}
           <Card>
@@ -135,10 +166,12 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
-                  <LinkIcon className="mr-2 h-4 w-4" />
-                  Connect Meera Device
-                </Button>
+                <Link href="/perception">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Laptop className="mr-2 h-4 w-4" />
+                    Access Perception
+                  </Button>
+                </Link>
                 <Button variant="outline" className="w-full justify-start">
                   <Settings className="mr-2 h-4 w-4" />
                   Configure Settings
@@ -162,10 +195,12 @@ export default function Dashboard() {
                 <p className="text-gray-500 mb-6 max-w-sm mx-auto">
                   Once your Meera device is connected, your meeting interactions will appear here automatically.
                 </p>
-                <Button variant="outline">
-                  <LinkIcon className="mr-2 h-4 w-4" />
-                  Connect Your Device
-                </Button>
+                <Link href="/perception">
+                  <Button variant="outline">
+                    <Laptop className="mr-2 h-4 w-4" />
+                    Access Perception
+                  </Button>
+                </Link>
               </div>
             ) : (
               <div className="space-y-4">

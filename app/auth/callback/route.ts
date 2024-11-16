@@ -13,12 +13,14 @@ export async function GET(request: Request) {
     
     try {
       await supabase.auth.exchangeCodeForSession(code)
+      // Redirect to dashboard after successful auth
+      return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
     } catch (error) {
       console.error('Error in auth callback:', error)
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL('/login', requestUrl.origin))
     }
   }
 
-  // Redirect to dashboard after successful authentication
-  return NextResponse.redirect(new URL('/dashboard', request.url))
+  // If no code, redirect to login
+  return NextResponse.redirect(new URL('/login', requestUrl.origin))
 }
