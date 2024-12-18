@@ -5,42 +5,34 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    // Get a service role client instead of using cookies
-    const supabase = createRouteHandlerClient(
-      { cookies },
-      {
-        options: {
-          db: { schema: 'public' }
-        }
-      }
-    )
-
+    const supabase = createRouteHandlerClient({ cookies })
     const data = await request.json()
 
-    // Validate required fields
     const {
-      content,
-      audio_url = null,
       type = 'transcription',
+      body,
+      action = null,
+      comments = null,
       metadata = {}
     } = data
 
-    if (!content) {
+    if (!body) {
       return NextResponse.json(
-        { error: 'Content is required' },
+        { error: 'Body is required' },
         { status: 400 }
       )
     }
 
-    // Insert with public access
+    // Insert into Supabase
     const { data: interaction, error } = await supabase
       .from('interactions')
       .insert([
         {
-          content,
           type,
+          body,
+          action,
+          comments,
           metadata,
-          audio_url,
           timestamp: new Date().toISOString()
         }
       ])
@@ -55,12 +47,34 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      data: interaction 
-    })
+    return NextResponse.json({ success: true, data: interaction })
   } catch (error) {
     console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+    
+    const { data: interactions, error } = await supabase
+      .from('interactions')
+      .select('*')
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch interactions' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ data: interactions })
+  } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

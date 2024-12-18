@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogOut, User, MessageSquare, Clock, Settings, BellRing, Sparkles, Link as LinkIcon, Laptop } from 'lucide-react'
+import { LogOut, User, MessageSquare, Clock, Settings, BellRing, Sparkles, Link as LinkIcon, Laptop, ScrollText } from 'lucide-react'
 import { fetchInteractions } from '@/lib/supabase/utils'
 import type { Interaction } from '@/types/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -72,6 +72,18 @@ export default function Dashboard() {
                   className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Perception
+                </Link>
+                <Link 
+                  href="/logs" 
+                  className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Logs
+                </Link>
+                <Link 
+                  href="/monitor" 
+                  className="text-gray-900 hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Monitor
                 </Link>
               </div>
             </div>
@@ -170,6 +182,20 @@ export default function Dashboard() {
                   <Button variant="outline" className="w-full justify-start">
                     <Laptop className="mr-2 h-4 w-4" />
                     Access Perception
+                  </Button>
+                </Link>
+               
+                <Link href="/monitor">
+                  <Button variant="outline" className="w-full justify-start">
+                    <ScrollText className="mr-2 h-4 w-4" />
+                    Monitor
+                  </Button>
+                </Link>
+
+                <Link href="/logs">
+                  <Button variant="outline" className="w-full justify-start">
+                    <ScrollText className="mr-2 h-4 w-4" />
+                    View System Logs
                   </Button>
                 </Link>
                 <Button variant="outline" className="w-full justify-start">
