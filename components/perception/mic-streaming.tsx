@@ -70,33 +70,38 @@ const MicStreaming: React.FC = () => {
     }
   }
 
+    // Update the WebSocket connection to use Deepgram's API
   const setupWebSocket = () => {
-    if (wsRef.current) {
-      wsRef.current.close()
-    }
-
-    const ws = new WebSocket(wsUrl)
-    wsRef.current = ws
+    const deepgramUrl = 'wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=16000&channels=1';
+    
+    const ws = new WebSocket(deepgramUrl, {
+      headers: {
+        Authorization: `0aa4af07b750d62ab882eae5e873328292b389cb`
+      }
+    });
+    wsRef.current = ws;
 
     ws.onopen = () => {
-      addLog('connection', 'WebSocket connected')
-      setWsStatus('connected')
-    }
+      addLog('success', 'Connected to Deepgram');
+      setWsStatus('connected');
+    };
 
-    ws.onclose = () => {
-      addLog('connection', 'WebSocket disconnected')
-      setWsStatus('disconnected')
-      setIsRecording(false)
-    }
-
-    ws.onerror = (error) => {
-      addLog('error', 'WebSocket error occurred')
-      setWsStatus('error')
-      setIsRecording(false)
-    }
-
-    ws.onmessage = handleWebSocketMessage
-  }
+    ws.onmessage = (event) => {
+      try {
+        const received = JSON.parse(event.data);
+        if (received.channel && received.channel.alternatives) {
+          const transcript = received.channel.alternatives[0].transcript;
+          if (transcript) {
+            // Here we can emit the transcript to our Monitor page
+            // We can use a state management solution or WebSocket to handle this
+            console.log('Transcript:', transcript);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing Deepgram response:', error);
+      }
+    };
+  };
 
   const toggleRecording = async () => {
     if (!isRecording) {
